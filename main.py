@@ -1,0 +1,1 @@
+print("a python project for hand sign detection")
