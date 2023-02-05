@@ -1,7 +1,7 @@
 import cv2
 import mediapipe as mp
-from matplotlib import pyplot as plt
 import numpy as np
+import os
 
 # init
 mp_holistic = mp.solutions.holistic  # holistic model
@@ -34,6 +34,8 @@ def draw_landmarks(image, results):
     mp_drawing.draw_landmarks(image, results.right_hand_landmarks, mp_holistic.HAND_CONNECTIONS,
                               mp_drawing_styles.get_default_hand_landmarks_style(), mp_drawing_styles.get_default_hand_connections_style())
 
+# extracting keypoints
+
 
 def extract_keypoints(results):
     face = np.array([[res.x, res.y, res.z] for res in results.face_landmarks.landmark]).flatten(
@@ -47,13 +49,28 @@ def extract_keypoints(results):
     return np.concatenate([face, pose, left_hand, right_hand])
 
 
+# setup data collection folders
+folder_path = 'sld_data'
+actions = np.array(['hello', 'yes', 'no', 'help', 'please', 'thank_you'])
+sequence_no = 30
+sequence_length = 30
+
+
+# creating the folders
+for action in actions:
+    for sequence in range(sequence_no):
+        try:
+            os.makedirs(os.path.join(folder_path, action, str(sequence)))
+        except:
+            pass
+
+# opencv video capture loop
 cap = cv2.VideoCapture(0)
 with mp_holistic.Holistic(
         min_detection_confidence=0.5,
         min_tracking_confidence=0.5) as holistic:
     while cap.isOpened():
         ret, frame = cap.read()
-        plt.imshow(frame)
 
         # detect feed
         image, results = detection(frame, holistic)
